@@ -1,0 +1,75 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Test 1
+      id: test-1
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: Test 1
+        setup-command: pip install -r requirements.txt
+        command: python main.py
+        input: |-
+          3
+          Shipment of gold damaged in a fire.
+          Delivery of silver arrived in a silver truck
+          Shipment of gold arrived in a truck.
+          gold silver truck
+        expected-output: "[1, 2, 0]"
+        comparison-method: exact
+        timeout: 10
+        max-score: 1
+    - name: Test 2
+      id: test-2
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: Test 2
+        setup-command: pip install -r requirements.txt
+        command: python main.py
+        input: |-
+          4
+          Shipment of gold damaged in a fire.
+          Delivery of silver arrived in a silver truck
+          Shipment of gold arrived in a truck.
+          I see gold fire in a silver truck
+          gold fire
+        expected-output: "[0, 3, 2, 1]"
+        comparison-method: exact
+        timeout: 10
+        max-score: 1
+    - name: Test 3
+      id: test-3
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: Test 3
+        setup-command: pip install -r requirements.txt
+        command: python main.py
+        input: |-
+          3
+          Shipment of gold damaged in a fire.
+          Delivery of silver arrived in a silver truck
+          I see gold fire in a silver truck
+          gold fire
+        expected-output: "[0, 2, 1]"
+        comparison-method: exact
+        timeout: 10
+        max-score: 1
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        TEST-1_RESULTS: "${{steps.test-1.outputs.result}}"
+        TEST-2_RESULTS: "${{steps.test-2.outputs.result}}"
+        TEST-3_RESULTS: "${{steps.test-3.outputs.result}}"
+      with:
+        runners: test-1,test-2,test-3
